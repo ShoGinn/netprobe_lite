@@ -12,56 +12,75 @@ services:
     image: "redis:latest"
     volumes:
       - ./config/redis/redis.conf:/etc/redis/redis.conf
+      - redis_data:/data
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
+      - 8.8.4.4
 
   netprobe:
     restart: always
     container_name: netprobe-probe
-    image: "plaintextpackets/netprobe:latest"
-    pull_policy: always
-    volumes:
-      - .:/netprobe_lite
+    labels:
+      logging: "promtail"
+      logging_jobname: "netprobe-probe"
+
+    image: "netprobe:latest"
+    pull_policy: never
     environment:
-      MODULE: "NETPROBE"
+      - APP_ENV=production
+
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
+      - 8.8.4.4
+    command: ["netprobe-lite-probe"]
 
   speedtest:
     restart: always
     container_name: netprobe-speedtest
-    image: "plaintextpackets/netprobe:latest"
-    pull_policy: always
-    volumes:
-      - .:/netprobe_lite
+    labels:
+      logging: "promtail"
+      logging_jobname: "netprobe-speedtest"
     environment:
-      MODULE: "SPEEDTEST"
+      - APP_ENV=production
+      - SPEEDTEST_ENABLED=true
+
+    image: "netprobe:latest"
+    pull_policy: never
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
+      - 8.8.4.4
+    command: ["netprobe-lite-speedtest"]
 
   presentation:
+    build:
+      context: .
+      dockerfile: Dockerfile
     restart: always
     container_name: netprobe-presentation
-    image: "plaintextpackets/netprobe:latest"
-    pull_policy: always
-    volumes:
-      - .:/netprobe_lite
+    labels:
+      logging: "promtail"
+      logging_jobname: "netprobe-presentation"
     environment:
-      MODULE: "PRESENTATION"
+      - APP_ENV=production
+
+    image: "netprobe:latest"
+    pull_policy: never
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
+      - 8.8.4.4
+    command: ["netprobe-lite-presentation"]
+    depends_on:
+      - redis
+      - netprobe
+      - speedtest
 
   prometheus:
     restart: always
@@ -69,34 +88,57 @@ services:
     image: "prom/prometheus"
     volumes:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - prometheus_data:/prometheus  # Persistent local storage for Prometheus data
+      - prometheus_data:/prometheus # Persistent local storage for Prometheus data
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
+      - 8.8.4.4
 
   grafana:
     restart: always
     image: grafana/grafana-enterprise
     container_name: netprobe-grafana
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
     volumes:
       - ./config/grafana/datasources/automatic.yml:/etc/grafana/provisioning/datasources/automatic.yml
       - ./config/grafana/dashboards/main.yml:/etc/grafana/provisioning/dashboards/main.yml
       - ./config/grafana/dashboards/netprobe.json:/var/lib/grafana/dashboards/netprobe.json
       - grafana_data:/var/lib/grafana
     ports:
-      - '3001:3000'
+      - "3001:3000"
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
-      - 8.8.4.4      
-      
+      - 8.8.4.4
+  loki:
+    image: grafana/loki:latest
+    ports:
+      - 3100:3100
+    networks:
+      - netprobe-net
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - ./config/promtail/promtail.yaml:/etc/promtail/docker-config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/docker-config.yaml
+    networks:
+      - netprobe-net
+    depends_on:
+      - loki
+
 volumes:
   prometheus_data:
   grafana_data:
-  
+  redis_data:

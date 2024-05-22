@@ -1,0 +1,9 @@
+.git
+.env
+.env.*
+.mypy_cache/
+compose.yml
+.vscode/
+.dockerignore
+.gitignore
+Dockerfile

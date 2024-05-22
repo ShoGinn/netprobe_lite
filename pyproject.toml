@@ -1,0 +1,29 @@
+[tool.poetry]
+authors = ["Your Name <you@example.com>"]
+description = ""
+name = "netprobe-lite"
+readme = "README.md"
+version = "0.1.0"
+[tool.poetry.scripts]
+netprobe-lite-presentation = "netprobe_lite.presentation:main"
+netprobe-lite-probe = "netprobe_lite.netprobe:main"
+netprobe-lite-speedtest = "netprobe_lite.speedtest:main"
+
+[tool.poetry.dependencies]
+dnspython = "^2.6.1"
+prometheus-client = "^0.20.0"
+python = "^3.12"
+python-dotenv = "^1.0.1"
+redis = "^5.0.4"
+requests = "^2.32.2"
+speedtest-cli = "^2.1.3"
+loguru = "^0.7.2"
+
+[tool.poetry.group.dev.dependencies]
+mypy = "^1.10.0"
+ruff = "^0.4.4"
+types-requests = "^2.32.0.20240521"
+
+[build-system]
+build-backend = "poetry.core.masonry.api"
+requires = ["poetry-core"]
