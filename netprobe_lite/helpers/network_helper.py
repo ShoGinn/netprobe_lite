@@ -1,5 +1,6 @@
 # Network tests
 import json
+import re
 import subprocess
 from threading import Thread
 
@@ -9,39 +10,41 @@ from loguru import logger
 
 
 class NetworkCollector:  # Main network collection class
-    def __init__(
-        self, sites: list[str], count: int | str, dns_test_site: list[str], nameservers_external: list
-    ) -> None:
+    def __init__(self, sites: list[str], count: int | str, dns_test_site: str, nameservers_external: list) -> None:
         self.sites = sites  # List of sites to ping
         self.count = str(count)  # Number of pings
-        self.stats: list[dict[str, str]] = []  # List of stat dicts
+        self.stats: list[dict[str, str | float | int]] = []  # List of stat dicts
         self.dns_stats: list[dict[str, str | float | int]] = []  # List of stat dicts
         self.dns_test_site = dns_test_site  # Site used to test DNS response times
         self.nameservers = []
         self.nameservers = nameservers_external
 
     def ping_test(self, count: int, site: str) -> bool:
-        ping = subprocess.getoutput(f"ping -n -i 0.1 -c {count} {site} | grep 'rtt\\|loss'")
-
+        ping = subprocess.getoutput(f"ping -n -i 0.1 -c {count} {site} | grep 'max\\|loss'")
         try:
-            loss = ping.split(" ")[5].strip("%")
-            latency = ping.split("/")[4]
-            jitter = ping.split("/")[6].split(" ")[0]
-
-            net_data = {
-                "site": site,
-                "latency": latency,
-                "loss": loss,
-                "jitter": jitter,
-            }
-
-            self.stats.append(net_data)
-
+            self.ping_parse(ping, site)
         except Exception as e:
             logger.error(f"Error pinging {site} - {e}")
             return False
 
         return True
+
+    def ping_parse(self, ping: str, site: str) -> None:
+        loss_match = re.search(r"(\d+(\.\d+)?)%? packet loss", ping)
+        loss = loss_match[1] if loss_match else 5000.0
+
+        latency_jitter_match = re.search(r"([\d\.]+)/([\d\.]+)/([\d\.]+)/([\d\.]+) ms", ping)
+        latency = latency_jitter_match[3] if latency_jitter_match else 5000.0
+        jitter = latency_jitter_match[4] if latency_jitter_match else 5000.0
+
+        net_data = {
+            "site": site,
+            "latency": latency,
+            "loss": loss,
+            "jitter": jitter,
+        }
+        logger.debug(f"Netprobe: {net_data}")
+        self.stats.append(net_data)
 
     def dns_test(self, site: str, name_server: str) -> bool:
         my_resolver = dns.resolver.Resolver()
@@ -102,7 +105,6 @@ class NetworkCollector:  # Main network collection class
 
         # Create threads, start them
         threads = []
-
         for item in self.nameservers:
             s = Thread(
                 target=self.dns_test,
