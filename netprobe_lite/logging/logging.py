@@ -1,7 +1,6 @@
 """Logging module provides functionality for setting up the logger for the app."""
 
 import json
-import os
 import sys
 
 import loguru
@@ -31,7 +30,7 @@ def structured_formatter(record: "loguru.Record") -> str:
     return "{extra[__json_serialized]}\n"
 
 
-def setup_logger() -> None:
+def setup_logger(app_env: str = "local", app_log_level: str = "DEBUG") -> None:
     """
     Set up the logger based on the specified log level.
 
@@ -39,8 +38,6 @@ def setup_logger() -> None:
         RuntimeError: If the environment is unknown.
 
     """
-    app_env = os.getenv("APP_ENV", "local")
-    app_log_level = os.getenv("LOG_LEVEL", "DEBUG")
 
     logger.remove()
     logger.bind().info("Setting up logger")
@@ -72,3 +69,4 @@ def setup_logger() -> None:
         )
     else:
         raise RuntimeError(f"Unknown environment: {app_env}, Exiting...")
+    logger.debug(f"Logger set up for {app_env} environment. Log level: {app_log_level}")

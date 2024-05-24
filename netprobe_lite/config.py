@@ -11,7 +11,10 @@ from netprobe_lite.logging.logging import setup_logger
 with contextlib.suppress(IOError):
     load_dotenv()
 
-setup_logger()
+app_env = os.getenv("APP_ENV", "local")
+app_log_level = os.getenv("LOG_LEVEL", "DEBUG")
+
+setup_logger(app_env=app_env, app_log_level=app_log_level)
 
 
 class ConfigNetProbe:
