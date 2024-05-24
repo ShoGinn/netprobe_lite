@@ -42,7 +42,7 @@ def setup_logger(app_env: str = "local", app_log_level: str = "DEBUG") -> None:
     logger.remove()
     logger.bind().info("Setting up logger")
     # deployment mode
-    if app_env == "local":
+    if app_env == "production":
         logger.add(
             sys.stdout,
             level=app_log_level,
@@ -53,7 +53,7 @@ def setup_logger(app_env: str = "local", app_log_level: str = "DEBUG") -> None:
             enqueue=True,
         )
         # local mode ot test mode
-    elif app_env == "production":
+    elif app_env == "local":
         logger.add(
             sys.stdout,
             level=app_log_level,
