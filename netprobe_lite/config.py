@@ -1,5 +1,7 @@
 import contextlib
 import os
+from typing import ClassVar
+
 from dotenv import load_dotenv
 
 from netprobe_lite.logging.logging import setup_logger
@@ -12,13 +14,11 @@ with contextlib.suppress(IOError):
 setup_logger()
 
 
-class Config_Netprobe:
+class ConfigNetProbe:
     probe_interval = int(os.getenv("PROBE_INTERVAL", "30"))
     probe_count = int(os.getenv("PROBE_COUNT", "50"))
-    sites = os.getenv(
-        "SITES", "google.com,facebook.com,twitter.com,youtube.com,amazon.com"
-    ).split(",")
-    dns_test_site = os.getenv("DNS_TEST_SITE", "google.com")
+    sites = os.getenv("SITES", "google.com,facebook.com,twitter.com,youtube.com,amazon.com").split(",")
+    dns_test_site: ClassVar[list[str]] = [os.getenv("DNS_TEST_SITE", "google.com")]
     speedtest_enabled = os.getenv("SPEEDTEST_ENABLED", "False").lower() in (
         "true",
         "1",
@@ -35,7 +35,7 @@ class Config_Netprobe:
     DNS_NAMESERVER_4 = os.getenv("DNS_NAMESERVER_4", "My_DNS_Server")
     DNS_NAMESERVER_4_IP = os.getenv("DNS_NAMESERVER_4_IP", "8.8.8.8")
 
-    nameservers = [
+    nameservers: ClassVar[list[tuple[str, str]]] = [
         (DNS_NAMESERVER_1, DNS_NAMESERVER_1_IP),
         (DNS_NAMESERVER_2, DNS_NAMESERVER_2_IP),
         (DNS_NAMESERVER_3, DNS_NAMESERVER_3_IP),
@@ -43,22 +43,22 @@ class Config_Netprobe:
     ]
 
 
-class Config_Redis:
+class ConfigRedis:
     redis_url = os.getenv("REDIS_URL", "netprobe-redis")
     redis_port = os.getenv("REDIS_PORT", "6379")
     redis_password = os.getenv("REDIS_PASSWORD", "password")
 
 
-class Config_Presentation:
+class ConfigPresentation:
     presentation_port = int(os.getenv("PRESENTATION_PORT", "49500"))
     presentation_interface = os.getenv("PRESENTATION_INTERFACE", "0.0.0.0")
 
-    weight_loss = float(os.getenv("weight_loss", "0.6"))
-    weight_latency = float(os.getenv("weight_latency", "0.15"))
-    weight_jitter = float(os.getenv("weight_jitter", "0.2"))
-    weight_dns_latency = float(os.getenv("weight_dns_latency", "0.05"))
+    weight_loss = float(os.getenv("WEIGHT_LOSS", "0.6"))
+    weight_latency = float(os.getenv("WEIGHT_LATENCY", "0.15"))
+    weight_jitter = float(os.getenv("WEIGHT_JITTER", "0.2"))
+    weight_dns_latency = float(os.getenv("WEIGHT_DNS_LATENCY", "0.05"))
 
-    threshold_loss = int(os.getenv("threshold_loss", "5"))
-    threshold_latency = int(os.getenv("threshold_latency", "100"))
-    threshold_jitter = int(os.getenv("threshold_jitter", "30"))
-    threshold_dns_latency = int(os.getenv("threshold_dns_latency", "100"))
+    threshold_loss = int(os.getenv("THRESHOLD_LOSS", "5"))
+    threshold_latency = int(os.getenv("THRESHOLD_LATENCY", "100"))
+    threshold_jitter = int(os.getenv("THRESHOLD_JITTER", "30"))
+    threshold_dns_latency = int(os.getenv("THRESHOLD_DNS_LATENCY", "100"))

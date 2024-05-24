@@ -1,25 +1,27 @@
 # Network tests
-import subprocess
 import json
+import subprocess
 from threading import Thread
+
 import dns.resolver
-import speedtest  # type: ignore # Speedtest is not typed
+import speedtest  # type: ignore[import-untyped]
+from loguru import logger
 
 
-class NetworkCollector(object):  # Main network collection class
-    def __init__(self, sites, count, dns_test_site, nameservers_external):
+class NetworkCollector:  # Main network collection class
+    def __init__(
+        self, sites: list[str], count: int | str, dns_test_site: list[str], nameservers_external: list
+    ) -> None:
         self.sites = sites  # List of sites to ping
         self.count = str(count)  # Number of pings
-        self.stats = []  # List of stat dicts
-        self.dns_stats = []  # List of stat dicts
+        self.stats: list[dict[str, str]] = []  # List of stat dicts
+        self.dns_stats: list[dict[str, str | float | int]] = []  # List of stat dicts
         self.dns_test_site = dns_test_site  # Site used to test DNS response times
         self.nameservers = []
         self.nameservers = nameservers_external
 
-    def ping_test(self, count, site):
-        ping = subprocess.getoutput(
-            f"ping -n -i 0.1 -c {count} {site} | grep 'rtt\\|loss'"
-        )
+    def ping_test(self, count: int, site: str) -> bool:
+        ping = subprocess.getoutput(f"ping -n -i 0.1 -c {count} {site} | grep 'rtt\\|loss'")
 
         try:
             loss = ping.split(" ")[5].strip("%")
@@ -36,12 +38,12 @@ class NetworkCollector(object):  # Main network collection class
             self.stats.append(net_data)
 
         except Exception as e:
-            print(f"Error pinging {site} - {e}")
+            logger.error(f"Error pinging {site} - {e}")
             return False
 
         return True
 
-    def dns_test(self, site, name_server):
+    def dns_test(self, site: str, name_server: str) -> bool:
         my_resolver = dns.resolver.Resolver()
 
         server = [name_server[1]]
@@ -53,7 +55,7 @@ class NetworkCollector(object):  # Main network collection class
 
             dns_latency = round(answers.response.time * 1000, 2)
 
-            dns_data = {
+            dns_data: dict[str, str | float | int] = {
                 "nameserver": name_server[0],
                 "nameserver_ip": name_server[1],
                 "latency": dns_latency,
@@ -62,20 +64,20 @@ class NetworkCollector(object):  # Main network collection class
             self.dns_stats.append(dns_data)
 
         except Exception as e:
-            print(f"Error performing DNS resolution on {name_server}")
-            print(e)
+            logger.error(f"Error performing DNS resolution on {name_server}")
+            logger.error(e)
 
             dns_data = {
                 "nameserver": name_server[0],
                 "nameserver_ip": name_server[1],
-                "latency": 5000,
+                "latency": 5000.0,
             }
 
             self.dns_stats.append(dns_data)
 
         return True
 
-    def collect(self):
+    def collect(self) -> str:
         # Empty previous results
         self.stats = []
         self.dns_stats = []
@@ -119,11 +121,11 @@ class NetworkCollector(object):  # Main network collection class
         return json.dumps({"stats": self.stats, "dns_stats": self.dns_stats})
 
 
-class Netprobe_Speedtest(object):  # Speed test class
-    def __init__(self):
+class NetprobeSpeedTest:  # Speed test class
+    def __init__(self) -> None:
         self.speedtest_stats = {"download": None, "upload": None}
 
-    def netprobe_speedtest(self):
+    def netprobe_speedtest(self) -> None:
         s = speedtest.Speedtest()
         s.get_best_server()
         download = s.download()
@@ -131,7 +133,7 @@ class Netprobe_Speedtest(object):  # Speed test class
 
         self.speedtest_stats = {"download": download, "upload": upload}
 
-    def collect(self):
+    def collect(self) -> str:
         self.speedtest_stats = {"download": None, "upload": None}
         self.netprobe_speedtest()
 

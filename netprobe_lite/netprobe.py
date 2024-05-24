@@ -3,24 +3,23 @@
 import json
 import time
 
-from netprobe_lite.config import Config_Netprobe
-from netprobe_lite.helpers.network_helper import NetworkCollector
-from netprobe_lite.helpers.redis_helper import RedisConnect
 from loguru import logger
 
+from netprobe_lite.config import ConfigNetProbe
+from netprobe_lite.helpers.network_helper import NetworkCollector
+from netprobe_lite.helpers.redis_helper import RedisConnect
 
-def netprobe_service():
+
+def netprobe_service() -> None:
     # Global Variables
 
-    probe_interval = Config_Netprobe.probe_interval
-    probe_count = Config_Netprobe.probe_count
-    sites = Config_Netprobe.sites
-    dns_test_site = Config_Netprobe.dns_test_site
-    nameservers_external = Config_Netprobe.nameservers
+    probe_interval = ConfigNetProbe.probe_interval
+    probe_count = ConfigNetProbe.probe_count
+    sites = ConfigNetProbe.sites
+    dns_test_site = ConfigNetProbe.dns_test_site
+    nameservers_external = ConfigNetProbe.nameservers
 
-    collector = NetworkCollector(
-        sites, probe_count, dns_test_site, nameservers_external
-    )
+    collector = NetworkCollector(sites, probe_count, dns_test_site, nameservers_external)
 
     # Logging Config
 
@@ -29,7 +28,6 @@ def netprobe_service():
             stats = collector.collect()
 
         except Exception as e:
-            print("Error testing network")
             logger.error("Error testing network")
             logger.error(e)
             continue
@@ -41,13 +39,9 @@ def netprobe_service():
 
             # Save Data to Redis
 
-            cache_interval = (
-                probe_interval + 15
-            )  # Set the redis cache TTL slightly longer than the probe interval
+            cache_interval = probe_interval + 15  # Set the redis cache TTL slightly longer than the probe interval
 
             cache.redis_write("netprobe", json.dumps(stats), cache_interval)
-
-            # logger.info(f"Stats successfully written to Redis from device ID for Netprobe")
 
         except Exception as e:
             logger.error("Could not connect to Redis")
@@ -56,7 +50,7 @@ def netprobe_service():
         time.sleep(probe_interval)
 
 
-def main():
+def main() -> None:
     netprobe_service()
 
 
