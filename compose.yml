@@ -110,6 +110,7 @@ services:
       - ./config/grafana/datasources/automatic.yml:/etc/grafana/provisioning/datasources/automatic.yml
       - ./config/grafana/dashboards/main.yml:/etc/grafana/provisioning/dashboards/main.yml
       - ./config/grafana/dashboards/netprobe.json:/var/lib/grafana/dashboards/netprobe.json
+      - ./config/grafana/dashboards/loki.json:/var/lib/grafana/dashboards/loki.json
       - grafana_data:/var/lib/grafana
     ports:
       - "3001:3000"
