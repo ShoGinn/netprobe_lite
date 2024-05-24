@@ -1,6 +1,5 @@
 # Netprobe Service
 
-import json
 import time
 
 from loguru import logger
@@ -44,9 +43,12 @@ def speedtest_service() -> None:
 
                 cache_interval = speedtest_interval * 2  # Set the redis cache 2x longer than the speedtest interval
 
-                cache.redis_write("speedtest", json.dumps(stats), cache_interval)
+                cache.redis_write("speedtest", stats, cache_interval)
 
-                logger.debug(f"Stats successfully written to Redis for Speed Test, {stats}")
+                logger.debug(
+                    "Stats successfully written to Redis for Speed Test",
+                    extra={"stats": stats},
+                )
 
             except Exception as e:
                 logger.error("Could not connect to Redis")

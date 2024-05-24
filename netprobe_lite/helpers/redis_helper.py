@@ -24,7 +24,7 @@ class RedisConnect:
 
     def redis_read(self, key: str) -> dict:  # Read data from Redis
         results = self.r.get(key)
-        return dict(json.loads(str(results))) if results else {}
+        return json.loads(results) if results else {}  # type: ignore[no-any-return, arg-type]
 
     def redis_write(self, key: str, data: str, ttl: int) -> None:  # Write data to Redis
-        self.r.set(key, json.dumps(data), ttl)
+        self.r.set(key, data, ttl)

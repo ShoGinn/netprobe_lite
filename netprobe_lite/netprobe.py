@@ -1,6 +1,5 @@
 # Netprobe Service
 
-import json
 import time
 
 from loguru import logger
@@ -41,7 +40,7 @@ def netprobe_service() -> None:
 
             cache_interval = probe_interval + 15  # Set the redis cache TTL slightly longer than the probe interval
 
-            cache.redis_write("netprobe", json.dumps(stats), cache_interval)
+            cache.redis_write("netprobe", stats, cache_interval)
 
         except Exception as e:
             logger.error("Could not connect to Redis")
