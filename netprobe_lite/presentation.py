@@ -1,6 +1,5 @@
 # Data presentation service (prometheus)
 
-import json
 import time
 from collections.abc import Iterable
 
@@ -29,7 +28,7 @@ class CustomCollector(Collector):
             return
 
         if results_netprobe := cache.redis_read("netprobe"):
-            stats_netprobe = json.loads(results_netprobe)
+            stats_netprobe = results_netprobe
         else:
             return
 
@@ -71,7 +70,7 @@ class CustomCollector(Collector):
                 my_dns_latency = float(item["latency"])
 
         if results_speedtest := cache.redis_read("speedtest"):
-            stats_speedtest = json.loads(results_speedtest)
+            stats_speedtest = results_speedtest
 
             s = GaugeMetricFamily(
                 "Speed_Stats",

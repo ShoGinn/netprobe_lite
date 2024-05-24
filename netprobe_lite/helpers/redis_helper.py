@@ -22,9 +22,9 @@ class RedisConnect:
             host=self.redis_url, port=self.redis_port
         )
 
-    def redis_read(self, key: str) -> str:  # Read data from Redis
+    def redis_read(self, key: str) -> dict:  # Read data from Redis
         results = self.r.get(key)
-        return str(results) if results else ""
+        return dict(json.loads(str(results))) if results else {}
 
     def redis_write(self, key: str, data: str, ttl: int) -> None:  # Write data to Redis
         self.r.set(key, json.dumps(data), ttl)
