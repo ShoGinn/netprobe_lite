@@ -30,6 +30,7 @@ services:
     pull_policy: never
     environment:
       - APP_ENV=production
+      - NETPROBE_LOG_LEVEL=info
 
     networks:
       - netprobe-net
@@ -47,6 +48,7 @@ services:
     environment:
       - APP_ENV=production
       - SPEEDTEST_ENABLED=true
+      - NETPROBE_LOG_LEVEL=info
 
     image: "netprobe:latest"
     pull_policy: never
@@ -68,6 +70,7 @@ services:
       logging_jobname: "netprobe-presentation"
     environment:
       - APP_ENV=production
+      - NETPROBE_LOG_LEVEL=info
 
     image: "netprobe:latest"
     pull_policy: never
