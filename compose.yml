@@ -47,7 +47,6 @@ services:
       logging_jobname: "netprobe-speedtest"
     environment:
       - NETPROBE_APP_ENV=prod
-      - NETPROBE_SPEED_TEST__ENABLED=true
       - NETPROBE_LOG_LEVEL=INFO
 
     image: "netprobe:latest"
