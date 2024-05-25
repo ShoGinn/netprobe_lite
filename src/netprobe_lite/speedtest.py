@@ -15,7 +15,7 @@ def speedtest_service(config: Settings) -> None:
     if not speedtest_enabled:
         logger.info("Speedtest is not enabled")
         while True:
-            time.sleep(60)  # Sleep for a minute before checking again
+            time.sleep(100000)  # sleep for a long time
 
     if speedtest_enabled is True:
         collector = NetprobeSpeedTest()
