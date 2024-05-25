@@ -4,8 +4,8 @@ import re
 import subprocess
 from threading import Thread
 
-import dns.resolver
 import speedtest  # type: ignore[import-untyped]
+from dns.resolver import Resolver
 from loguru import logger
 
 
@@ -47,15 +47,14 @@ class NetworkCollector:  # Main network collection class
         self.stats.append(net_data)
 
     def dns_test(self, site: str, name_server: str) -> bool:
-        my_resolver = dns.resolver.Resolver()
+        my_resolver = Resolver()
 
         server = [name_server[1]]
         try:
             my_resolver.nameservers = server
             my_resolver.timeout = 10
 
-            answers = my_resolver.query(site, "A")
-
+            answers = my_resolver.resolve(site)
             dns_latency = round(answers.response.time * 1000, 2)
 
             dns_data: dict[str, str | float | int] = {

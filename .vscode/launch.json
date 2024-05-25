@@ -1,0 +1,11 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Python Debugger: netprobe module",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "netprobe_lite.netprobe"
+    }
+  ]
+}
