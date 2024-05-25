@@ -8,17 +8,17 @@ from prometheus_client import start_http_server
 from prometheus_client.core import REGISTRY, GaugeMetricFamily, Metric
 from prometheus_client.registry import Collector
 
-from netprobe_lite.config import ConfigPresentation
+from netprobe_lite.config import Settings
 from netprobe_lite.helpers.redis_helper import RedisConnect
 
 
 class CustomCollector(Collector):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, config: Settings) -> None:
+        self.config = config
 
     def collect(self) -> Iterable[Metric]:
         try:
-            cache = RedisConnect()
+            cache = RedisConnect(config=self.config)
         except Exception as e:
             logger.error("Could not connect to Redis")
             logger.error(e)
@@ -81,19 +81,20 @@ class CustomCollector(Collector):
             for key, value in stats_speedtest["speed_stats"].items():
                 if value:
                     s.add_metric([key], value)
+            yield s
 
         weight_loss, weight_latency, weight_jitter, weight_dns_latency = (
-            ConfigPresentation.weight_loss,
-            ConfigPresentation.weight_latency,
-            ConfigPresentation.weight_jitter,
-            ConfigPresentation.weight_dns_latency,
+            self.config.presentation.weight_loss,
+            self.config.presentation.weight_latency,
+            self.config.presentation.weight_jitter,
+            self.config.presentation.weight_dns_latency,
         )
 
         threshold_loss, threshold_latency, threshold_jitter, threshold_dns_latency = (
-            ConfigPresentation.threshold_loss,
-            ConfigPresentation.threshold_latency,
-            ConfigPresentation.threshold_jitter,
-            ConfigPresentation.threshold_dns_latency,
+            self.config.presentation.threshold_loss,
+            self.config.presentation.threshold_latency,
+            self.config.presentation.threshold_jitter,
+            self.config.presentation.threshold_dns_latency,
         )
 
         eval_loss = min(average_loss / threshold_loss, 1)
@@ -113,20 +114,15 @@ class CustomCollector(Collector):
 
         yield g
         yield h
-        yield s
         yield i
 
 
-def main() -> None:
+def start(config: Settings) -> None:
     start_http_server(
-        ConfigPresentation.presentation_port,
-        addr=ConfigPresentation.presentation_interface,
+        config.presentation.port,
+        addr=config.presentation.interface,
     )
 
-    REGISTRY.register(CustomCollector())
+    REGISTRY.register(CustomCollector(config=config))
     while True:
-        time.sleep(15)
-
-
-if __name__ == "__main__":
-    main()
+        time.sleep(100000)

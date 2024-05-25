@@ -4,15 +4,14 @@ import time
 
 from loguru import logger
 
-from netprobe_lite.config import ConfigNetProbe
+from netprobe_lite.config import Settings
 from netprobe_lite.helpers.network_helper import NetprobeSpeedTest
 from netprobe_lite.helpers.redis_helper import RedisConnect
 
 
-def speedtest_service() -> None:
+def speedtest_service(config: Settings) -> None:
     # Global Variables
-
-    speedtest_enabled = ConfigNetProbe.speedtest_enabled
+    speedtest_enabled = config.speed_test.enabled
     if not speedtest_enabled:
         logger.info("Speedtest is not enabled")
         while True:
@@ -22,7 +21,7 @@ def speedtest_service() -> None:
         collector = NetprobeSpeedTest()
 
         # Logging Config
-        speedtest_interval = ConfigNetProbe.speedtest_interval
+        speedtest_interval = config.speed_test.interval
 
         while True:
             try:
@@ -37,7 +36,7 @@ def speedtest_service() -> None:
             # Connect to Redis
 
             try:
-                cache = RedisConnect()
+                cache = RedisConnect(config=config)
 
                 # Save Data to Redis
 
@@ -55,11 +54,3 @@ def speedtest_service() -> None:
                 logger.error(e)
 
             time.sleep(speedtest_interval)
-
-
-def main() -> None:
-    speedtest_service()
-
-
-if __name__ == "__main__":
-    main()

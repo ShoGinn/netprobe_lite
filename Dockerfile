@@ -1,5 +1,4 @@
 # Dockerfile for netprobe_lite
-# https://github.com/plaintextpackets/netprobe_lite/
 FROM python:3.12-slim-bookworm as builder
 
 ENV \
@@ -10,7 +9,7 @@ ENV \
 
 WORKDIR /app
 
-RUN pip3 install poetry
+RUN pip3 install --no-cache-dir poetry==1.8.3
 
 COPY . ./
 
@@ -23,9 +22,9 @@ WORKDIR /app
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH" 
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
-    iputils-ping \
-    traceroute \
+RUN DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y --no-install-recommends \
+    iputils-ping=3:20221126-1 \
+    traceroute=1:2.1.2-1 \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 

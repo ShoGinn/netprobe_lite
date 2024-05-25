@@ -29,15 +29,15 @@ services:
     image: "netprobe:latest"
     pull_policy: never
     environment:
-      - APP_ENV=production
-      - NETPROBE_LOG_LEVEL=info
+      - NETPROBE_APP_ENV=prod
+      - NETPROBE_LOG_LEVEL=INFO
 
     networks:
       - netprobe-net
     dns:
       - 8.8.8.8
       - 8.8.4.4
-    command: ["netprobe-lite-probe"]
+    command: ["python3", "-m", "netprobe_lite", "--netprobe"]
 
   speedtest:
     restart: always
@@ -46,9 +46,9 @@ services:
       logging: "promtail"
       logging_jobname: "netprobe-speedtest"
     environment:
-      - APP_ENV=production
-      - SPEEDTEST_ENABLED=true
-      - NETPROBE_LOG_LEVEL=info
+      - NETPROBE_APP_ENV=prod
+      - NETPROBE_SPEED_TEST__ENABLED=true
+      - NETPROBE_LOG_LEVEL=INFO
 
     image: "netprobe:latest"
     pull_policy: never
@@ -57,7 +57,7 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
-    command: ["netprobe-lite-speedtest"]
+    command: ["python3", "-m", "netprobe_lite", "--speedtest"]
 
   presentation:
     build:
@@ -69,8 +69,8 @@ services:
       logging: "promtail"
       logging_jobname: "netprobe-presentation"
     environment:
-      - APP_ENV=production
-      - NETPROBE_LOG_LEVEL=info
+      - NETPROBE_APP_ENV=prod
+      - NETPROBE_LOG_LEVEL=INFO
 
     image: "netprobe:latest"
     pull_policy: never
@@ -79,7 +79,7 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
-    command: ["netprobe-lite-presentation"]
+    command: ["python3", "-m", "netprobe_lite", "--presentation"]
     depends_on:
       - redis
       - netprobe

@@ -4,21 +4,20 @@ import time
 
 from loguru import logger
 
-from netprobe_lite.config import ConfigNetProbe
+from netprobe_lite.config import Settings
 from netprobe_lite.helpers.network_helper import NetworkCollector
 from netprobe_lite.helpers.redis_helper import RedisConnect
 
 
-def netprobe_service() -> None:
+def netprobe_service(config: Settings) -> None:
     # Global Variables
 
-    probe_interval = ConfigNetProbe.probe_interval
-    probe_count = ConfigNetProbe.probe_count
-    sites = ConfigNetProbe.sites
-    dns_test_site = ConfigNetProbe.dns_test_site
-    nameservers_external = ConfigNetProbe.nameservers
-
-    collector = NetworkCollector(sites, probe_count, dns_test_site, nameservers_external)
+    collector = NetworkCollector(
+        config.net_probe.sites,
+        config.net_probe.count,
+        config.net_probe.dns_test_site,
+        config.net_probe.nameservers,
+    )
 
     # Logging Config
 
@@ -34,11 +33,13 @@ def netprobe_service() -> None:
         # Connect to Redis
 
         try:
-            cache = RedisConnect()
+            cache = RedisConnect(config=config)
 
             # Save Data to Redis
 
-            cache_interval = probe_interval + 15  # Set the redis cache TTL slightly longer than the probe interval
+            cache_interval = (
+                config.net_probe.interval + 15
+            )  # Set the redis cache TTL slightly longer than the probe interval
 
             cache.redis_write("netprobe", stats, cache_interval)
 
@@ -46,12 +47,4 @@ def netprobe_service() -> None:
             logger.error("Could not connect to Redis")
             logger.error(e)
 
-        time.sleep(probe_interval)
-
-
-def main() -> None:
-    netprobe_service()
-
-
-if __name__ == "__main__":
-    main()
+        time.sleep(config.net_probe.interval)

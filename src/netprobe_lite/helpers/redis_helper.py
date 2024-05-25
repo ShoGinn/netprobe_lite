@@ -7,16 +7,16 @@ import json
 
 import redis
 
-from netprobe_lite.config import ConfigRedis
+from netprobe_lite.config import Settings
 
 
 class RedisConnect:
-    def __init__(self) -> None:
+    def __init__(self, config: Settings) -> None:
         # Load global variables
 
-        self.redis_url = ConfigRedis.redis_url
-        self.redis_port = ConfigRedis.redis_port
-        self.redis_password = ConfigRedis.redis_password
+        self.redis_url = config.redis.url
+        self.redis_port = config.redis.port
+        self.redis_password = config.redis.password
 
         self.r = redis.Redis(  # Connect to Redis
             host=self.redis_url, port=self.redis_port
