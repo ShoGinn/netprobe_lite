@@ -45,7 +45,7 @@ def setup_logger(app_env: str = "local", app_log_level: str = "DEBUG") -> None:
     if app_env == "production":
         logger.add(
             sys.stdout,
-            level=app_log_level,
+            level=app_log_level.upper(),
             format=structured_formatter,
             serialize=False,
             backtrace=True,
@@ -56,7 +56,7 @@ def setup_logger(app_env: str = "local", app_log_level: str = "DEBUG") -> None:
     elif app_env == "local":
         logger.add(
             sys.stdout,
-            level=app_log_level,
+            level=app_log_level.upper(),
             format="<green>{time:YYYY-MM-DD at HH:mm:ss}</green> | "
             "<level>{level}</level> | <cyan>{name}</cyan>"
             ":<cyan>{function}</cyan>:<cyan>{line}</cyan>"
